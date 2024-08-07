@@ -1,11 +1,22 @@
-// src/redux/fetchDataSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-// import requests from '../Requests'; // Import your API requests object
 
-// Async thunk for fetching data
-export const fetchData = createAsyncThunk(
-  'data/fetchData',
+// Async thunk for fetching trending data
+export const fetchTrendingData = createAsyncThunk(
+  'data/fetchTrendingData',
+  async (fetchURL, thunkAPI) => {
+    try {
+      const response = await axios.get(fetchURL);
+      return response.data.results; // Return the results from the response
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); // Handle error
+    }   
+  }
+);
+
+// Async thunk for fetching recommended data
+export const fetchRecommendedData = createAsyncThunk(
+  'data/fetchRecommendedData',
   async (fetchURL, thunkAPI) => {
     try {
       const response = await axios.get(fetchURL);
@@ -20,7 +31,8 @@ export const fetchData = createAsyncThunk(
 const fetchDataSlice = createSlice({
   name: 'data',
   initialState: {
-    data: [],
+    trendingData: [],
+    recommendedData: [],
     isLoading: false,
     error: null,
   },
@@ -29,15 +41,27 @@ const fetchDataSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchData.pending, (state) => {
+      .addCase(fetchTrendingData.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchData.fulfilled, (state, action) => {
+      .addCase(fetchTrendingData.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload; // Store the fetched data in state
+        state.trendingData = action.payload; // Store the trending data in state
       })
-      .addCase(fetchData.rejected, (state, action) => {
+      .addCase(fetchTrendingData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload; // Store the error message in state
+      })
+      .addCase(fetchRecommendedData.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRecommendedData.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.recommendedData = action.payload; // Store the recommended data in state
+      })
+      .addCase(fetchRecommendedData.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload; // Store the error message in state
       });
